@@ -40,7 +40,26 @@ cargo build --workspace --release --target wasm32-wasip1
 - No daemon, filesystem watcher, ACK/bye protocol, or extra config keys beyond
   `manifest_dir` / `notify` / `notify_command`.
 - Minimal comments — explanatory only when non-obvious.
-- Update `CHANGELOG.md` under `[Unreleased]` for user-facing changes.
+- Prefer [Conventional Commits](https://www.conventionalcommits.org/)
+  (`feat:`, `fix:`, `ci:`, `chore:`, …). The changelog is generated from them
+  with [git-cliff](https://git-cliff.org/) (`cliff.toml`, same setup as tessera).
+
+## Changelog
+
+`CHANGELOG.md` is **generated**, not hand-edited for routine entries:
+
+```bash
+# full file (from all tags + unreleased)
+git-cliff -o CHANGELOG.md
+
+# preview unreleased only
+git-cliff --unreleased
+```
+
+On tag push (`vX.Y.Z`), release CI runs `git-cliff --latest --strip header` and
+uses that as the GitHub Release body. You do **not** need to paste notes into
+`CHANGELOG.md` before tagging; regenerate the file when you want the repo copy
+updated (e.g. after a release, or in a prep PR).
 
 ## Workflow
 
@@ -68,6 +87,8 @@ gh api repos/kaankoken/zj-agents/rulesets
 
 Maintainers only:
 
-1. Move `[Unreleased]` notes into a versioned section in `CHANGELOG.md`.
-2. Tag `vX.Y.Z` and push the tag.
-3. GitHub Actions builds both `.wasm` artifacts and attaches them to the release.
+1. Ensure recent commits use conventional prefixes so git-cliff groups them.
+2. Tag `vX.Y.Z` on the commit to ship and push the tag (`git push origin vX.Y.Z`).
+3. GitHub Actions: git-cliff generates release notes; both `.wasm` artifacts +
+   `SHA256SUMS` are uploaded to the GitHub Release.
+4. Optionally refresh the in-repo changelog: `git-cliff -o CHANGELOG.md` and open a PR.
