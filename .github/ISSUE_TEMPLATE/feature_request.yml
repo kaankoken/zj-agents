@@ -1,0 +1,24 @@
+name: Feature request
+description: Suggest an idea for zj-agents
+labels: ["enhancement"]
+body:
+  - type: textarea
+    id: problem
+    attributes:
+      label: Problem
+      description: What are you trying to do that zj-agents makes hard today?
+    validations:
+      required: true
+  - type: textarea
+    id: proposal
+    attributes:
+      label: Proposed solution
+    validations:
+      required: false
+  - type: textarea
+    id: fixtures
+    attributes:
+      label: Fixtures / agents
+      description: If this adds agent detection, can you provide redacted real viewport captures?
+    validations:
+      required: false

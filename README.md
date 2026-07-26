@@ -1,5 +1,8 @@
 # zj-agents
 
+[![CI](https://github.com/kaankoken/zj-agents/actions/workflows/verify.yml/badge.svg)](https://github.com/kaankoken/zj-agents/actions/workflows/verify.yml)
+[![License: MIT OR Apache-2.0](https://img.shields.io/badge/license-MIT%20OR%20Apache--2.0-blue.svg)](#license)
+
 Semantic coding-agent awareness for **stock Zellij ≥ 0.44.3**.
 
 Two WASM plugins share a pure Rust core:
@@ -9,37 +12,60 @@ Two WASM plugins share a pure Rust core:
 | `zj-agents-engine.wasm` | Background engine: discovery, classification, notifications, snapshots |
 | `zj-agents-sidebar.wasm` | Hideable floating sidebar UI |
 
-No Zellij fork is required.
+No Zellij fork is required. Zellij has no plugin package manager — distribution
+is **release WASM + config**, the same model as [room](https://github.com/rvcas/room),
+[harpoon](https://github.com/Nacho114/harpoon), and the [official plugin tutorial](https://zellij.dev/tutorials/developing-a-rust-plugin/).
 
-## Build and install
+## Install
 
-`zellij` must resolve on the Zellij **server’s** inherited `PATH` (used for `zellij action list-panes --all --json`).
+`zellij` must resolve on the Zellij **server’s** inherited `PATH`
+(used for `zellij action list-panes --all --json`).
+
+### 1) Get the WASM plugins
+
+**From a GitHub Release (recommended for users):**
 
 ```bash
-rustup target add wasm32-wasip1
+mkdir -p ~/.config/zellij/plugins
+curl -fsSL -o ~/.config/zellij/plugins/zj-agents-engine.wasm \
+  "https://github.com/kaankoken/zj-agents/releases/latest/download/zj-agents-engine.wasm"
+curl -fsSL -o ~/.config/zellij/plugins/zj-agents-sidebar.wasm \
+  "https://github.com/kaankoken/zj-agents/releases/latest/download/zj-agents-sidebar.wasm"
 ```
 
-**Nushell (recommended on this machine):**
+**Nushell:**
 
 ```nu
-nu scripts/install.nu
+nu scripts/install.nu --from-release
+# or a specific tag:
+# nu scripts/install.nu --from-release --tag v0.1.0
 ```
 
-**Bash/zsh:**
+**From source (developers):**
 
 ```bash
-cargo build --workspace --release --target wasm32-wasip1
-mkdir -p ~/.config/zellij/plugins
-cp target/wasm32-wasip1/release/zj-agents-engine.wasm \
-   target/wasm32-wasip1/release/zj-agents-sidebar.wasm \
-   ~/.config/zellij/plugins/
+git clone https://github.com/kaankoken/zj-agents
+cd zj-agents
+rustup target add wasm32-wasip1
+nu scripts/install.nu          # builds + copies both .wasm files
+# or: cargo build --workspace --release --target wasm32-wasip1
 ```
 
-Nushell does **not** expand `{engine,sidebar}` — list both files or use `scripts/install.nu`.
+Nushell does **not** expand bash braces — use `scripts/install.nu` or list both files.
 
-## Configuration (KDL)
+Optional integrity check after a release install:
 
-Register **named plugin aliases**, load the engine at session start, launch the sidebar by alias (not raw `file:` paths in keybinds).
+```bash
+# download SHA256SUMS from the same release, then:
+# sha256sum -c SHA256SUMS   # Linux
+# shasum -a 256 -c SHA256SUMS  # macOS
+```
+
+### 2) Register named plugins in Zellij config
+
+Add aliases, load the engine at session start, and bind the sidebar
+([plugin aliases](https://zellij.dev/documentation/plugin-aliases.html),
+[loading](https://zellij.dev/documentation/plugin-loading.html)):
 
 ```kdl
 plugins {
@@ -52,26 +78,43 @@ load_plugins {
     zj-agents-engine {
         notify true
         // notify_command "[\"notify-send\",\"--\",\"{title}\",\"{body}\"]"
-    }
-}
-
-keybinds {
-    // example: leader chord (prefer Ctrl over Alt on Turkish Q layouts)
-    tmux {
-        bind "a" {
-            LaunchOrFocusPlugin "zj-agents-sidebar" {
-                floating true
-                move_to_focused_tab true
-            }
-            SwitchToMode "normal"
-        }
+        // manifest_dir "~/…/custom-agent-detection"
     }
 }
 ```
 
-### Configuration keys (engine only)
+Keybind example (prefer **Ctrl** over Alt on Turkish Q layouts):
 
-Exactly three keys:
+```kdl
+// e.g. under a leader mode, or shared_except "locked"
+bind "a" {
+    LaunchOrFocusPlugin "zj-agents-sidebar" {
+        floating true
+        move_to_focused_tab true
+    }
+}
+```
+
+HTTPS aliases (no local copy) also work if you prefer Zellij to fetch releases:
+
+```kdl
+plugins {
+    zj-agents-engine location="https://github.com/kaankoken/zj-agents/releases/latest/download/zj-agents-engine.wasm"
+    zj-agents-sidebar location="https://github.com/kaankoken/zj-agents/releases/latest/download/zj-agents-sidebar.wasm"
+}
+```
+
+Local `file:` copies are usually better for offline use and stable permissions.
+
+### 3) Start a new session
+
+1. Start Zellij (engine loads with `load_plugins`).
+2. Grant the **engine** permission batch once.
+3. Open the sidebar (`Ctrl+a` `a` if you used that binding) and grant its batch.
+4. Wait until “Connecting…” clears (≤ ~30s).
+5. Run a supported agent in a pane (`claude`, `codex`, `grok`, `pi`, `omp`).
+
+## Configuration keys (engine only)
 
 | Key | Default | Meaning |
 |---|---|---|
@@ -81,78 +124,31 @@ Exactly three keys:
 
 ## Permissions
 
-Each plugin requests its **complete** permission batch once after subscribing. Stock v0.44.3 treats the result as all-or-nothing.
+Each plugin requests its **complete** permission batch once after subscribing.
 
-### Engine batch
+### Engine
 
 - `ReadApplicationState`
 - `ReadPaneContents`
 - `RunCommands`
 - `MessageAndLaunchOtherPlugins`
 
-### Sidebar batch
+### Sidebar
 
 - `ChangeApplicationState`
 - `MessageAndLaunchOtherPlugins`
 
-**Batch denial:** the engine stays inert (no discovery, pipes, or notifications). The sidebar shows:  
-`Sidebar permissions denied; engine connection and pane focus unavailable.`
-
-Document these prompts before installing so operators know what they are granting.
+Batch denial leaves the engine inert; the sidebar shows a local denial screen.
 
 ## Bundled agents
 
-Fixture-backed manifests only:
-
-- Claude
-- Codex
-- Grok
-- Pi
-- OMP
-
-Patterns come from reviewed redacted fixtures under `crates/zj-agents-core/tests/fixtures/`. Agents without real fixtures are not bundled.
-
-Override TOML files live in `manifest_dir`. Press `r` in the sidebar (or pipe `zj-agents:reload`) to reload atomically: invalid candidates are rejected as a set without partial adoption or notification.
-
-## Notifications
-
-Defaults when `notify = true` and `notify_command` is unset:
-
-- **Linux:** `notify-send -- {title} {body}`
-- **macOS:** `osascript` with `{title}`/`{body}` after `--`
-
-Hostile labels are sanitized; `notify-send` markup is escaped. Only new unfocused `Blocked` and `Done` transitions notify (coalesced).
+Fixture-backed only: Claude, Codex, Grok, Pi, OMP. Patterns come from reviewed
+redacted fixtures under `crates/zj-agents-core/tests/fixtures/`.
 
 ## Privacy
 
-Raw pane contents never leave the engine. Snapshots carry sanitized display metadata and derived state only. Do not log viewports, full commands, paths, titles, or fixture bodies.
-
-## Sidebar keys
-
-| Key | Action |
-|---|---|
-| `Up` / `k` | Previous row |
-| `Down` / `j` | Next row |
-| `Enter` | Focus selected pane and hide |
-| `r` | Reload manifests |
-| `q` / `Esc` | Hide |
-
-## Smoke checklist
-
-Against unmodified Zellij 0.44.3:
-
-1. Engine starts with pre-existing panes; CLI inventory bootstrap works.
-2. Deny engine batch once → engine inert.
-3. Deny sidebar batch once → exact denial screen.
-4. Grant both; promote/reconcile/demote/close agents.
-5. Exercise Unknown, Blocked, Working, Idle, Done, focus suppression.
-6. Hide/reopen/navigate/focus sidebar.
-7. Sidebar before engine or engine restart → hello reconnect within 30s.
-8. Malformed/version-mismatched pipes → diagnostics / incompatibility UI.
-9. Valid multi-file reload accepted; invalid rejected atomically.
-10. Notification argv safety for Linux/macOS.
-11. `Blocked → Working → Blocked` coalescing.
-12. No duplicate engine via broadcast/ID pipes.
+Raw pane contents never leave the engine. Snapshots carry sanitized display
+metadata and derived state only.
 
 ## Development
 
@@ -162,3 +158,36 @@ cargo clippy --workspace --all-targets -- -D warnings
 cargo fmt --check
 cargo build --workspace --release --target wasm32-wasip1
 ```
+
+See [CONTRIBUTING.md](CONTRIBUTING.md).
+
+## Releases
+
+Push a tag `vX.Y.Z`. GitHub Actions builds both plugins and attaches:
+
+- `zj-agents-engine.wasm`
+- `zj-agents-sidebar.wasm`
+- `SHA256SUMS`
+
+Update `CHANGELOG.md` before tagging. Optional: list the project on
+[awesome-zellij](https://github.com/zellij-org/awesome-zellij).
+
+## Contributing
+
+See [CONTRIBUTING.md](CONTRIBUTING.md). By participating you agree to the
+[Code of Conduct](CODE_OF_CONDUCT.md).
+
+## Security
+
+Report vulnerabilities privately — see [SECURITY.md](SECURITY.md).
+
+## License
+
+Licensed under either of
+
+- MIT license ([LICENSE-MIT](LICENSE-MIT))
+- Apache License 2.0 ([LICENSE-APACHE](LICENSE-APACHE))
+
+at your option. Unless you explicitly state otherwise, any contribution
+intentionally submitted for inclusion in this work shall be dual-licensed as
+above, without any additional terms or conditions.

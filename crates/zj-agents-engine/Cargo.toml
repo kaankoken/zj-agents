@@ -3,6 +3,9 @@ name = "zj-agents-engine"
 version.workspace = true
 edition.workspace = true
 rust-version.workspace = true
+license.workspace = true
+repository.workspace = true
+description = "Zellij background engine plugin for semantic agent state"
 
 [dependencies]
 serde.workspace = true

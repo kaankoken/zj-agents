@@ -1,0 +1,42 @@
+name: Bug report
+description: Something in zj-agents misbehaves
+labels: ["bug"]
+body:
+  - type: textarea
+    id: what-happened
+    attributes:
+      label: What happened?
+      description: What did you expect, and what happened instead?
+    validations:
+      required: true
+  - type: textarea
+    id: repro
+    attributes:
+      label: Steps to reproduce
+      placeholder: |
+        1. Install plugins from release vX.Y.Z
+        2. Start Zellij with load_plugins …
+        3. …
+    validations:
+      required: true
+  - type: input
+    id: version
+    attributes:
+      label: zj-agents version
+      description: Release tag or git commit (e.g. v0.1.0)
+    validations:
+      required: true
+  - type: input
+    id: zellij
+    attributes:
+      label: Zellij version
+      description: Output of `zellij --version` (need ≥ 0.44.3)
+    validations:
+      required: true
+  - type: input
+    id: os
+    attributes:
+      label: OS
+      description: e.g. macOS 15, Ubuntu 24.04
+    validations:
+      required: false

@@ -1,0 +1,94 @@
+name: release
+
+on:
+  push:
+    tags: ["v[0-9]+.*"]
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+env:
+  CARGO_TERM_COLOR: always
+  NODE_OPTIONS: --no-deprecation
+
+jobs:
+  create-release:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Extract changelog section for this tag
+        run: |
+          set -euo pipefail
+          VER="${GITHUB_REF_NAME#v}"
+          python3 - <<PY
+          import pathlib, re
+          ver = "${VER}"
+          text = pathlib.Path("CHANGELOG.md").read_text()
+          pat = re.compile(rf"## \[{re.escape(ver)}\].*?\n(.*?)(?=\n## |\Z)", re.S)
+          m = pat.search(text)
+          body = m.group(1).strip() if m else f"Release {ver}"
+          pathlib.Path("RELEASE_NOTES.md").write_text(body + "\n")
+          PY
+
+      - name: Create or update GitHub Release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          TAG="${{ github.ref_name }}"
+          if gh release view "$TAG" -R "${{ github.repository }}" >/dev/null 2>&1; then
+            gh release edit "$TAG" -R "${{ github.repository }}" --notes-file RELEASE_NOTES.md
+          else
+            gh release create "$TAG" --title "$TAG" --notes-file RELEASE_NOTES.md
+          fi
+
+  wasm:
+    needs: create-release
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Rust
+        uses: actions-rust-lang/setup-rust-toolchain@v1
+        with:
+          components: clippy, rustfmt
+          target: wasm32-wasip1
+          cache-key: release-wasm
+          rustflags: ""
+
+      - name: Build release WASM
+        run: cargo build --workspace --release --target wasm32-wasip1
+
+      - name: Stage assets
+        run: |
+          set -euo pipefail
+          mkdir -p dist
+          cp target/wasm32-wasip1/release/zj-agents-engine.wasm dist/
+          cp target/wasm32-wasip1/release/zj-agents-sidebar.wasm dist/
+          (
+            cd dist
+            sha256sum zj-agents-engine.wasm zj-agents-sidebar.wasm > SHA256SUMS
+          )
+          ls -la dist
+
+      - name: Upload release assets
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          gh release upload "${{ github.ref_name }}" \
+            dist/zj-agents-engine.wasm \
+            dist/zj-agents-sidebar.wasm \
+            dist/SHA256SUMS \
+            --clobber

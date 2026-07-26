@@ -3,6 +3,9 @@ name = "zj-agents-sidebar"
 version.workspace = true
 edition.workspace = true
 rust-version.workspace = true
+license.workspace = true
+repository.workspace = true
+description = "Zellij floating sidebar plugin for semantic agent state"
 
 [dependencies]
 serde.workspace = true
