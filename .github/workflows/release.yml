@@ -25,30 +25,25 @@ jobs:
         with:
           fetch-depth: 0
 
-      - name: Extract changelog section for this tag
-        run: |
-          set -euo pipefail
-          VER="${GITHUB_REF_NAME#v}"
-          python3 - <<PY
-          import pathlib, re
-          ver = "${VER}"
-          text = pathlib.Path("CHANGELOG.md").read_text()
-          pat = re.compile(rf"## \[{re.escape(ver)}\].*?\n(.*?)(?=\n## |\Z)", re.S)
-          m = pat.search(text)
-          body = m.group(1).strip() if m else f"Release {ver}"
-          pathlib.Path("RELEASE_NOTES.md").write_text(body + "\n")
-          PY
+      - name: Generate release notes (latest tag only)
+        id: git-cliff
+        uses: orhun/git-cliff-action@v4
+        with:
+          config: cliff.toml
+          args: --latest --strip header
+        env:
+          OUTPUT: CHANGES.md
 
-      - name: Create or update GitHub Release
+      - name: Create the GitHub Release
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
           set -euo pipefail
           TAG="${{ github.ref_name }}"
           if gh release view "$TAG" -R "${{ github.repository }}" >/dev/null 2>&1; then
-            gh release edit "$TAG" -R "${{ github.repository }}" --notes-file RELEASE_NOTES.md
+            gh release edit "$TAG" -R "${{ github.repository }}" --notes-file CHANGES.md
           else
-            gh release create "$TAG" --title "$TAG" --notes-file RELEASE_NOTES.md
+            gh release create "$TAG" --title "$TAG" --notes-file CHANGES.md
           fi
 
   wasm:

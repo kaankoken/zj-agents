@@ -163,14 +163,16 @@ See [CONTRIBUTING.md](CONTRIBUTING.md).
 
 ## Releases
 
-Push a tag `vX.Y.Z`. GitHub Actions builds both plugins and attaches:
+Push a tag `vX.Y.Z`. GitHub Actions:
 
-- `zj-agents-engine.wasm`
-- `zj-agents-sidebar.wasm`
-- `SHA256SUMS`
+1. Generates release notes with **git-cliff** from conventional commits (`cliff.toml`).
+2. Builds both plugins and attaches:
+   - `zj-agents-engine.wasm`
+   - `zj-agents-sidebar.wasm`
+   - `SHA256SUMS`
 
-Update `CHANGELOG.md` before tagging. Optional: list the project on
-[awesome-zellij](https://github.com/zellij-org/awesome-zellij).
+Regenerate the in-repo file anytime with `git-cliff -o CHANGELOG.md`. Optional:
+list the project on [awesome-zellij](https://github.com/zellij-org/awesome-zellij).
 
 ## Contributing
 
