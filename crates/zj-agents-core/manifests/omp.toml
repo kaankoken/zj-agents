@@ -1,0 +1,21 @@
+schema = 1
+name = "omp"
+label = "Oh My Posh"
+scan_lines = 40
+fallback = "idle"
+
+[detect]
+process = ["omp"]
+argv_any = []
+
+[[rule]]
+state = "blocked"
+pattern = "(?i)error:|permission denied|failed to"
+
+[[rule]]
+state = "working"
+pattern = "(?i)initializing|loading|rendering"
+
+[[rule]]
+state = "idle"
+pattern = "(?i)usage:|omp/|help"

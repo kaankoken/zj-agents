@@ -1,0 +1,7 @@
+{
+  "database": "dolt",
+  "backend": "dolt",
+  "dolt_mode": "embedded",
+  "dolt_database": "zj_agents",
+  "project_id": "2bab0bf5-56e3-43c9-9666-edaefb4c859b"
+}

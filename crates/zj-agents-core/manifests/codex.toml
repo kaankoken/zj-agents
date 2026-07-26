@@ -1,0 +1,21 @@
+schema = 1
+name = "codex"
+label = "Codex"
+scan_lines = 40
+fallback = "idle"
+
+[detect]
+process = ["codex"]
+argv_any = []
+
+[[rule]]
+state = "blocked"
+pattern = "(?i)Approve this command|Waiting for approval|permission required"
+
+[[rule]]
+state = "working"
+pattern = "(?i)Working|Running|thinking"
+
+[[rule]]
+state = "idle"
+pattern = "(?m)^›\\s*$|ctrl\\+c to exit"

@@ -1,0 +1,21 @@
+schema = 1
+name = "claude"
+label = "Claude Code"
+scan_lines = 40
+fallback = "idle"
+
+[detect]
+process = ["claude"]
+argv_any = []
+
+[[rule]]
+state = "blocked"
+pattern = "(?i)Do you want to proceed|permission|Allow\\?"
+
+[[rule]]
+state = "working"
+pattern = "(?i)Thinking…|Esc to interrupt|Working…"
+
+[[rule]]
+state = "idle"
+pattern = "(?m)^❯\\s*$|\\? for shortcuts"

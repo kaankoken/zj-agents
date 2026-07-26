@@ -1,0 +1,11 @@
+[package]
+name = "zj-agents-engine"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+
+[dependencies]
+serde.workspace = true
+serde_json.workspace = true
+zellij-tile.workspace = true
+zj-agents-core = { path = "../zj-agents-core" }

@@ -1,0 +1,5 @@
+Codex
+
+Approve this command?
+  git status
+Waiting for approval

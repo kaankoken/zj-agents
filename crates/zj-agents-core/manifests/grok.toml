@@ -1,0 +1,21 @@
+schema = 1
+name = "grok"
+label = "Grok"
+scan_lines = 40
+fallback = "idle"
+
+[detect]
+process = ["grok"]
+argv_any = []
+
+[[rule]]
+state = "blocked"
+pattern = "(?i)Approve|Allow this action|waiting for confirmation"
+
+[[rule]]
+state = "working"
+pattern = "(?i)Thinking|Generating|Working"
+
+[[rule]]
+state = "idle"
+pattern = "(?m)^>\\s*$|Type a message"

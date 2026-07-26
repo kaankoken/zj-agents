@@ -1,0 +1,3 @@
+omp/17.1.2
+
+Usage: omp [command]

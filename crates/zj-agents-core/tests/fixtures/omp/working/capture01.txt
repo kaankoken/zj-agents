@@ -1,0 +1,4 @@
+omp
+initializing theme…
+loading config
+rendering prompt

@@ -1,0 +1,4 @@
+Pi
+
+Allow tool: bash?
+Confirm permission

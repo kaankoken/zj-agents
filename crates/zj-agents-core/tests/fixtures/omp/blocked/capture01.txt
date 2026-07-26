@@ -1,0 +1,3 @@
+omp
+error: permission denied reading config
+failed to initialize

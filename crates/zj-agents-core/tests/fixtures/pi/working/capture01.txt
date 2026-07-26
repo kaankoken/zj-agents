@@ -1,0 +1,4 @@
+Pi
+
+Thinking…
+Running tool: bash

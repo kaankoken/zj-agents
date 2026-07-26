@@ -1,0 +1,20 @@
+[workspace]
+members = [
+  "crates/zj-agents-core",
+  "crates/zj-agents-engine",
+  "crates/zj-agents-sidebar",
+]
+resolver = "2"
+
+[workspace.package]
+version = "0.1.0"
+edition = "2021"
+rust-version = "1.92"
+
+[workspace.dependencies]
+regex = "1.5.5"
+serde = { version = "1.0", default-features = false, features = ["derive", "std"] }
+serde_json = { version = "1.0", default-features = false, features = ["std"] }
+strip-ansi-escapes = "0.2"
+toml = "0.9"
+zellij-tile = "=0.44.3"

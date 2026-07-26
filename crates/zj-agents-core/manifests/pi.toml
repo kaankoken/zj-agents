@@ -1,0 +1,21 @@
+schema = 1
+name = "pi"
+label = "Pi"
+scan_lines = 40
+fallback = "idle"
+
+[detect]
+process = ["pi"]
+argv_any = []
+
+[[rule]]
+state = "blocked"
+pattern = "(?i)Allow tool|Confirm|permission"
+
+[[rule]]
+state = "working"
+pattern = "(?i)Thinking|Running tool|Working"
+
+[[rule]]
+state = "idle"
+pattern = "(?m)^>\\s*$|Ready"
