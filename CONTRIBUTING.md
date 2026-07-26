@@ -51,18 +51,17 @@ no direct pushes, linear history, squash/rebase only, required CI contexts
 `verify (ubuntu-latest)` and `verify (macos-14)`. Release tags `v*` are protected
 against deletion/rewrite (`.github/rulesets/tag-release.json`).
 
-Ruleset JSON is the source of truth for humans; apply or update on GitHub with
-(requires admin on the repo, after the first successful `verify` run so check
-names exist):
+Ruleset JSON under `.github/rulesets/` matches what is applied on GitHub
+(copied from tessera via `gh api`, with status checks set to this repo’s
+`verify` matrix). DeployKey may bypass; Dependabot integration bypass was
+omitted (GitHub rejects it for this personal repo).
 
 ```bash
-# create (once)
-gh api --method POST repos/kaankoken/zj-agents/rulesets \
-  --input .github/rulesets/branch-master.json
-gh api --method POST repos/kaankoken/zj-agents/rulesets \
-  --input .github/rulesets/tag-release.json
+# list
+gh api repos/kaankoken/zj-agents/rulesets
 
-# list / update later: gh api repos/kaankoken/zj-agents/rulesets
+# update after editing JSON (use ruleset id from list)
+# gh api --method PUT repos/kaankoken/zj-agents/rulesets/<id> --input .github/rulesets/branch-master.json
 ```
 
 ## Releasing
