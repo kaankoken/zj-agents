@@ -6,6 +6,10 @@
 
 Semantic coding-agent awareness for **stock Zellij ≥ 0.44.3**.
 
+Inspired by [Herdr](https://herdr.dev/)’s agent panes (real terminals with blocked /
+working / done style state), implemented as plugins so you can stay on Zellij
+instead of switching multiplexers.
+
 Two WASM plugins share a pure Rust core:
 
 | Artifact | Role |
