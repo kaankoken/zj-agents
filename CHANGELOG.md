@@ -11,6 +11,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Dual license (MIT OR Apache-2.0) and public-repo hygiene (CONTRIBUTING, SECURITY, CoC, templates)
 - CI verify workflow and tagged release workflow publishing both WASM plugins
+- GitHub ruleset definitions for protected `master` and `v*` tags (`.github/rulesets/`)
 - Nushell install script (`scripts/install.nu`) with optional GitHub release download
 - Stock-Zellij semantic agent state: pure core + engine/sidebar plugins
 - Fixture-backed manifests for Claude, Codex, Grok, Pi, and OMP

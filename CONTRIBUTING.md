@@ -44,7 +44,26 @@ cargo build --workspace --release --target wasm32-wasip1
 
 ## Workflow
 
-Branch → PR against `master` → status checks green (`verify`) → merge.
+Branch → PR against `master` → status checks green (`verify` on ubuntu + macOS) → merge.
+
+`master` is protected via a GitHub ruleset (see `.github/rulesets/branch-master.json`):
+no direct pushes, linear history, squash/rebase only, required CI contexts
+`verify (ubuntu-latest)` and `verify (macos-14)`. Release tags `v*` are protected
+against deletion/rewrite (`.github/rulesets/tag-release.json`).
+
+Ruleset JSON is the source of truth for humans; apply or update on GitHub with
+(requires admin on the repo, after the first successful `verify` run so check
+names exist):
+
+```bash
+# create (once)
+gh api --method POST repos/kaankoken/zj-agents/rulesets \
+  --input .github/rulesets/branch-master.json
+gh api --method POST repos/kaankoken/zj-agents/rulesets \
+  --input .github/rulesets/tag-release.json
+
+# list / update later: gh api repos/kaankoken/zj-agents/rulesets
+```
 
 ## Releasing
 
