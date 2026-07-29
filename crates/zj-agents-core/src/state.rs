@@ -18,6 +18,7 @@ pub struct PaneState {
     state: AgentState,
     baseline_pending: bool,
     completion_pending: bool,
+    blocked_notified: bool,
     consecutive_read_failures: u8,
     transition_generation: u64,
     since_ms: u64,
@@ -29,6 +30,7 @@ impl PaneState {
             state: AgentState::Unknown,
             baseline_pending: true,
             completion_pending: false,
+            blocked_notified: false,
             consecutive_read_failures: 0,
             transition_generation: 0,
             since_ms: 0,
@@ -41,6 +43,7 @@ impl PaneState {
             state,
             baseline_pending: false,
             completion_pending: false,
+            blocked_notified: state == AgentState::Blocked,
             consecutive_read_failures: 0,
             transition_generation: 1,
             since_ms: 0,
@@ -175,7 +178,7 @@ impl PaneState {
             (AgentState::Blocked, Observation::Idle) => {
                 self.record_change_to(AgentState::Idle, None)
             }
-            (AgentState::Blocked, Observation::Blocked) => self.stable(),
+            (AgentState::Blocked, Observation::Blocked) => self.attention_blocked(focused),
             (AgentState::Blocked, Observation::Unknown) => {
                 self.record_change_to(AgentState::Unknown, None)
             }
@@ -196,13 +199,20 @@ impl PaneState {
 
     fn attention_blocked(&mut self, focused: bool) -> StateChange {
         self.completion_pending = false;
-        let attention = if focused {
-            None
-        } else {
-            Some(AttentionKind::Blocked)
-        };
+        if focused {
+            self.blocked_notified = false;
+            if self.state != AgentState::Blocked {
+                return self.record_change_to(AgentState::Blocked, None);
+            }
+            return self.stable();
+        }
+        let emit_attention = !self.blocked_notified;
+        self.blocked_notified = true;
+        let attention = Some(AttentionKind::Blocked);
         if self.state != AgentState::Blocked {
             self.record_change_to(AgentState::Blocked, attention)
+        } else if emit_attention {
+            self.record_change(attention)
         } else {
             self.stable()
         }
@@ -221,6 +231,9 @@ impl PaneState {
         next: AgentState,
         attention: Option<AttentionKind>,
     ) -> StateChange {
+        if next != AgentState::Blocked {
+            self.blocked_notified = false;
+        }
         self.state = next;
         self.record_change(attention)
     }
@@ -379,5 +392,33 @@ mod tests {
         let mut pane = PaneState::baseline(AgentState::Blocked);
         pane.observe(Observation::Idle, false);
         assert_eq!(pane.state(), AgentState::Idle);
+    }
+
+    #[test]
+    fn unfocusing_blocked_pane_triggers_deferred_attention() {
+        let mut pane = PaneState::baseline(AgentState::Idle);
+        let change1 = pane.observe(Observation::Blocked, true);
+        assert_eq!(pane.state(), AgentState::Blocked);
+        assert_eq!(change1.attention, None);
+
+        let change2 = pane.observe(Observation::Blocked, false);
+        assert_eq!(pane.state(), AgentState::Blocked);
+        assert_eq!(change2.attention, Some(AttentionKind::Blocked));
+
+        let change3 = pane.observe(Observation::Blocked, false);
+        assert_eq!(pane.state(), AgentState::Blocked);
+        assert_eq!(change3.attention, None);
+    }
+
+    #[test]
+    fn baseline_blocked_pane_notifies_on_next_unfocused_cycle() {
+        let mut pane = PaneState::new();
+        let change1 = pane.observe(Observation::Blocked, false);
+        assert_eq!(pane.state(), AgentState::Blocked);
+        assert_eq!(change1.attention, None);
+
+        let change2 = pane.observe(Observation::Blocked, false);
+        assert_eq!(pane.state(), AgentState::Blocked);
+        assert_eq!(change2.attention, Some(AttentionKind::Blocked));
     }
 }

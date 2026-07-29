@@ -1,0 +1,9 @@
+Question
+────────────────────────────────────────
+
+Question 1/1: What specific feature or flow are you testing right now?
+
+> 1. Testing the ask_question UI modal and option selection
+  2. Testing subagent invocation or background tasks
+  3. Testing file edits and code generation
+  4. Write-in...

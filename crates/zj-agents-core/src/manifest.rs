@@ -250,6 +250,7 @@ pub fn bundled_manifests() -> Result<Vec<CompiledManifest>, ManifestSetError> {
         ("grok.toml", include_str!("../manifests/grok.toml")),
         ("pi.toml", include_str!("../manifests/pi.toml")),
         ("omp.toml", include_str!("../manifests/omp.toml")),
+        ("agy.toml", include_str!("../manifests/agy.toml")),
     ]
     .into_iter()
     .map(|(name, text)| {

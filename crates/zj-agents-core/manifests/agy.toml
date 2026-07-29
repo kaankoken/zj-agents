@@ -1,0 +1,21 @@
+schema = 1
+name = "agy"
+label = "Antigravity"
+scan_lines = 40
+fallback = "idle"
+
+[detect]
+process = ["agy", "antigravity"]
+argv_any = []
+
+[[rule]]
+state = "working"
+pattern = "(?i)Esc to interrupt|Esc to cancel|Thinking…|Reasoning…|Working…|Generating…|Executing…"
+
+[[rule]]
+state = "blocked"
+pattern = "(?i)Allow\\?|Approve|permission|Do you want to proceed\\?|Confirm|(?m)^Question\\s+\\d+/\\d+:"
+
+[[rule]]
+state = "idle"
+pattern = "(?m)^[❯>]\\s*$|\\? for shortcuts|Type a message"
