@@ -156,8 +156,20 @@ redacted fixtures under `crates/zj-agents-core/tests/fixtures/`.
 
 ## Privacy
 
-Raw pane contents never leave the engine. Snapshots carry sanitized display
-metadata and derived state only.
+To detect status, the engine reads the current visible text of each detected
+agent pane about once a second. It does not request full scrollback. The bundled
+rules check only the last 40 visible lines.
+
+Pane text is used temporarily inside the engine to classify the agent as Idle,
+Working, Blocked, or Done. Raw pane text is not kept in engine state, sent to
+the sidebar, or included in notification commands.
+
+The sidebar receives pane and tab identifiers and names, detected agent and
+display names, derived status and timing, and diagnostics. Notifications receive
+only a display name with `blocked` or `finished`, or an agent-count summary.
+Text fields are stripped of control characters and shortened, but they are not
+secret-redacted; a display name can still contain a working-directory name or
+pane title.
 
 ## Build from source (developers)
 
