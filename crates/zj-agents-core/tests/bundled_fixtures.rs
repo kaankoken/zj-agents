@@ -3,7 +3,7 @@ use std::path::{Path, PathBuf};
 use zj_agents_core::manifest::{bundled_manifests, classify};
 use zj_agents_core::model::Observation;
 
-const AGENTS: [&str; 5] = ["claude", "codex", "grok", "pi", "omp"];
+const AGENTS: [&str; 6] = ["claude", "codex", "grok", "pi", "omp", "agy"];
 const STATES: [&str; 3] = ["idle", "working", "blocked"];
 
 fn fixture_root() -> PathBuf {

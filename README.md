@@ -121,7 +121,7 @@ Local `file:` copies are better for offline use and stable permission grants.
 2. Grant the **engine** permission batch once.
 3. Open the sidebar and grant its batch.
 4. Wait until “Connecting…” clears (≤ ~30s).
-5. Run a supported agent in a pane (`claude`, `codex`, `grok`, `pi`, `omp`).
+5. Run a supported agent in a pane (`claude`, `codex`, `grok`, `pi`, `omp`, `agy`).
 
 ## Configuration keys (engine only)
 
@@ -151,7 +151,7 @@ Batch denial leaves the engine inert; the sidebar shows a local denial screen.
 
 ## Bundled agents
 
-Fixture-backed only: Claude, Codex, Grok, Pi, OMP. Patterns come from reviewed
+Fixture-backed only: Claude, Codex, Grok, Pi, OMP, Antigravity (`agy`). Patterns come from reviewed
 redacted fixtures under `crates/zj-agents-core/tests/fixtures/`.
 
 ## Privacy
