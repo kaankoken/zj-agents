@@ -21,4 +21,4 @@ serde = { version = "1.0", default-features = false, features = ["derive", "std"
 serde_json = { version = "1.0", default-features = false, features = ["std"] }
 strip-ansi-escapes = "0.2"
 toml = "1.1"
-zellij-tile = "=0.44.3"
+zellij-tile = "=0.45.0"
